@@ -53,7 +53,7 @@ class LogObserver:
 
 
 path = "../../udemy"
-filename = "../../udemy/logging.log"
+filename = "logging.log"
 pattern = "*"
 ignore_pattern = ""
 log_pattern = r"^[1-9]*$"
