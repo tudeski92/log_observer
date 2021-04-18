@@ -45,7 +45,9 @@ def check_log_in_sequence(pattern_list, target_list):
     print(f"{pattern_list} sequence NOT found in {target_list}")
     return sequence_found
 
-check_log_in_sequence(list1, list3)
+
+if __name__ == "__main__":
+    check_log_in_sequence(list1, list3)
 
 
 
