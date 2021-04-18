@@ -2,7 +2,13 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import time
 import re
+import multiprocessing
+from check_log_list import check_log_in_sequence
+
+
+
 log_list = list()
+event = ["200", "201", "202", "203"]
 
 
 class EventHandler(PatternMatchingEventHandler):
@@ -51,25 +57,57 @@ class LogObserver:
         self.observer.join()
 
 
+def run_obersver(pattern, ignore_pattern, filename, log_pattern, path, tmout=10):
+    counter = 0
+    with LogObserver(pattern, ignore_pattern, filename, log_pattern, path) as obs:
+        try:
+            while 1:
+                counter += 1
+                result = check_log_in_sequence(event, log_list)
+                if result:
+                    print(f"Observer completed successfully, {event} found in {log_list}")
+                    return 1
+                if counter == tmout:
+                    raise TimeoutError
+                time.sleep(1)
+        except TimeoutError as t:
+            print("Timeout Error")
 
-path = "../../udemy"
+
+def save_log():
+    print("Generating attach logs")
+    for i in range(300):
+        with open("logging.log", "a") as f:
+            f.writelines(str(i))
+        time.sleep(0.1)
+
+
+path = "."
 filename = "logging.log"
 pattern = "*"
 ignore_pattern = ""
-log_pattern = r"^[1-9]*$"
+log_pattern = r".*"
 
-with LogObserver(pattern, ignore_pattern, filename, log_pattern, path) as obs:
-    try:
-        while 1:
-            print(log_list)
-            if "123" in log_list:
-                raise KeyboardInterrupt
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        print("Log found")
+p1 = multiprocessing.Process(target=run_obersver, args=[pattern, ignore_pattern, filename, log_pattern, path, 600])
 
 
+def start_process(process):
+    process.start()
 
+
+def is_process_alive(process):
+    return process.is_alive()
+
+
+def attach_ue():
+    print("Attaching UE")
+
+
+if __name__ == "__main__":
+    start_process(p1)
+    time.sleep(1)
+    attach_ue()
+    save_log()
 
 
 
