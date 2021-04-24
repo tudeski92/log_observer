@@ -4,11 +4,17 @@ import time
 import re
 import multiprocessing
 from check_log_list import check_log_in_sequence
+import logging
 
+mylogger = logging.getLogger(__name__)
+mylogger.setLevel(level=logging.INFO)
+streamHandler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(message)s")
+streamHandler.setFormatter(formatter)
+mylogger.addHandler(streamHandler)
 
 
 log_list = list()
-event = ["200", "201", "202", "203"]
 
 
 class EventHandler(PatternMatchingEventHandler):
@@ -40,10 +46,10 @@ class LogObserver:
 
     def __init__(self, pattern, ignore_pattern,
                 filename, logpattern, path, recursive=False,
-                 case_sensitive=True, ignore_directories=True):
+                 case_sensitive=True, ignore_directories=True, clearlog=True):
         self.event_handler = EventHandler(patterns=pattern, ignore_patterns=ignore_pattern,
                             ignore_directories=ignore_directories, case_sensitive=case_sensitive,
-                                filename=filename, logpattern=logpattern, clearlog=True)
+                                filename=filename, logpattern=logpattern, clearlog=clearlog)
         self.path = path
         self.recursive = recursive
         self.observer = Observer()
@@ -57,21 +63,16 @@ class LogObserver:
         self.observer.join()
 
 
-def run_obersver(pattern, ignore_pattern, filename, log_pattern, path, tmout=10):
+def run_obersver(pattern, ignore_pattern, filename, log_pattern, path, events):
     counter = 0
     with LogObserver(pattern, ignore_pattern, filename, log_pattern, path) as obs:
-        try:
-            while 1:
-                counter += 1
-                result = check_log_in_sequence(event, log_list)
-                if result:
-                    print(f"Observer completed successfully, {event} found in {log_list}")
-                    return 1
-                if counter == tmout:
-                    raise TimeoutError
-                time.sleep(1)
-        except TimeoutError as t:
-            print("Timeout Error")
+        while 1:
+            counter += 1
+            result = check_log_in_sequence(events, log_list)
+            time.sleep(1)
+            if result:
+                break
+    mylogger.info(f"Breaking run_observer")
 
 
 def save_log():
@@ -79,8 +80,40 @@ def save_log():
     for i in range(300):
         with open("logging.log", "a") as f:
             f.writelines(str(i))
-        time.sleep(0.1)
+        time.sleep(0.01)
 
+
+def wait_until_observer_completed(observer, tmout):
+    counter = 0
+    mylogger.info(f"Observing for {tmout} seconds")
+    try:
+        while 1:
+            mylogger.info(f"Observer status {observer.is_alive()}")
+            if not observer.is_alive():
+                mylogger.info(f"Observer completed successfully")
+                return True
+            else:
+                time.sleep(1)
+                counter += 1
+                mylogger.info(f"Continue observation, remaining {tmout - counter} seconds")
+                if counter == tmout:
+                    observer.terminate()
+                    time.sleep(1)
+                    mylogger.info(f"Observed provess killed, observer status is_alive = {observer.is_alive()}")
+                    raise TimeoutError
+    except TimeoutError:
+        mylogger.info(f"Timeout Error")
+
+
+def start_observer_process(pattern, ignore_pattern, filename, log_pattern, path, events):
+    mylogger.info(f"Starting observer process, observing for events: {events} ")
+    obs_process = multiprocessing.Process(target=run_obersver, args=[pattern, ignore_pattern, filename, log_pattern, path, events])
+    obs_process.start()
+    return obs_process
+
+
+def attach_ue():
+    print("Attaching UE")
 
 path = "."
 filename = "logging.log"
@@ -88,26 +121,18 @@ pattern = "*"
 ignore_pattern = ""
 log_pattern = r".*"
 
-p1 = multiprocessing.Process(target=run_obersver, args=[pattern, ignore_pattern, filename, log_pattern, path, 600])
-
-
-def start_process(process):
-    process.start()
-
-
-def is_process_alive(process):
-    return process.is_alive()
-
-
-def attach_ue():
-    print("Attaching UE")
-
+generating_logs_process = multiprocessing.Process(target=save_log)
 
 if __name__ == "__main__":
-    start_process(p1)
+    obs = start_observer_process(path=path, filename=filename, pattern=pattern, ignore_pattern=ignore_pattern,
+                                 log_pattern=log_pattern, events=['9', '100', '11', '12'])
     time.sleep(1)
     attach_ue()
-    save_log()
+    generating_logs_process.start()
+    wait_until_observer_completed(obs, 30)
+
+
+
 
 
 

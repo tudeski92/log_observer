@@ -1,7 +1,3 @@
-list1 = [1, 800, 100, 150, 5]
-list3 = [1, 5, 4, 1, 7, 3, 1, 800, 100, 150, 5, 900, 345]
-
-
 class Stack:
 
     def __init__(self, stack=None):
@@ -46,8 +42,6 @@ def check_log_in_sequence(pattern_list, target_list):
     return sequence_found
 
 
-if __name__ == "__main__":
-    check_log_in_sequence(list1, list3)
 
 
 

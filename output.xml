@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 3.1.1 (Python 3.6.4 on win32)" generated="20210419 23:53:24.357" rpa="false">
+<suite id="s1" name="Observertest" source="C:\Users\Admin\PycharmProjects\training\Small Projects\logobserver\observertest.robot">
+<test id="s1-t1" name="Check if observer works">
+<kw name="Log" library="BuiltIn">
+<doc>Logs the given message with the given level.</doc>
+<arguments>
+<arg>${events}</arg>
+</arguments>
+<msg timestamp="20210419 23:53:24.451" level="INFO">['101', '100', '102', '103']</msg>
+<status status="PASS" starttime="20210419 23:53:24.451" endtime="20210419 23:53:24.451"></status>
+</kw>
+<kw name="Start Observer Process" library="log_observer">
+<arguments>
+<arg>${pattern}</arg>
+<arg>${ignore_pattern}</arg>
+<arg>${filename}</arg>
+<arg>${log_pattern}</arg>
+<arg>${path}</arg>
+<arg>${events}</arg>
+</arguments>
+<assign>
+<var>${observer}</var>
+</assign>
+<msg timestamp="20210419 23:53:24.451" level="INFO">Starting observer process, observing for events: {events} </msg>
+<msg timestamp="20210419 23:53:24.467" level="INFO">${observer} = &lt;Process(Process-1, started)&gt;</msg>
+<status status="PASS" starttime="20210419 23:53:24.451" endtime="20210419 23:53:24.467"></status>
+</kw>
+<kw name="Save Log" library="log_observer">
+<msg timestamp="20210419 23:53:29.732" level="INFO">Generating attach logs</msg>
+<status status="FAIL" starttime="20210419 23:53:24.467" endtime="20210419 23:53:29.732"></status>
+</kw>
+<status status="FAIL" starttime="20210419 23:53:24.451" endtime="20210419 23:53:29.732" critical="yes">Execution terminated by signal</status>
+</test>
+<status status="FAIL" starttime="20210419 23:53:24.357" endtime="20210419 23:53:29.732"></status>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="1">Critical Tests</stat>
+<stat pass="0" fail="1">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="0" fail="1" id="s1" name="Observertest">Observertest</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
